@@ -1,0 +1,14 @@
+{
+  "extends": ["airbnb-base", "plugin:jest/recommended"],
+  "rules": {
+    "no-underscore-dangle": "off"
+  },
+  "overrides": [
+    {
+      "files": ["*.js"],
+      "rules": {
+        "import/extensions": "off"
+      }
+    }
+  ]
+}

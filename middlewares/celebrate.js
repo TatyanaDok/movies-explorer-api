@@ -26,7 +26,7 @@ const loginValidator = celebrate({
 const updateUserValidator = celebrate({
   body: Joi.object().keys({
     email: Joi.string().email().required(),
-    name: Joi.string().min(2).max(30),
+    name: Joi.string().required().min(2).max(30),
   }),
 });
 
@@ -48,7 +48,7 @@ const createMovieValidator = celebrate({
 
 const deleteMovieValidator = celebrate({
   params: Joi.object().keys({
-    movieId: Joi.number().required(),
+    movieId: Joi.string().required(),
   }),
 });
 

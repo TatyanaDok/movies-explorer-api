@@ -5,8 +5,8 @@ const { NODE_ENV, JWT_SECRET } = process.env;
 const User = require('../models/user');
 
 const NotFoundError = require('../errors/notFoundErr');
-const UnauthorizedError = require('../errors/unauthorizedErr');
 const ConflictError = require('../errors/conflictError');
+const BadRequestError = require('../errors/badRequestErr');
 
 module.exports.getUser = (req, res, next) => {
   User.findById(req.user._id)
@@ -20,22 +20,38 @@ module.exports.getUser = (req, res, next) => {
 };
 
 module.exports.updateUser = (req, res, next) => {
-  const { name, email } = req.body;
-
-  User.findByIdAndUpdate(
-    req.user._id,
-    { name, email },
-    {
-      new: true,
-      runValidators: true,
-    }
-  )
-    .then((user) => {
-      if (!user) {
-        throw new UnauthorizedError('Переданы некорректные данные');
+  const { email, name } = req.body;
+  return User.findOne({ email })
+    .then((userChecked) => {
+      if (userChecked) {
+        throw new ConflictError(
+          'Пользователь с таким email уже зарегистрирован'
+        );
+      } else {
+        return User.findByIdAndUpdate(
+          req.user._id,
+          { email, name },
+          { new: true, runValidators: true }
+        ).then((user) => {
+          if (!user) {
+            throw new NotFoundError('Пользователь не найден');
+          }
+          res.send(user);
+        });
       }
-
-      res.send(user);
+    })
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        throw new BadRequestError(
+          'Переданы некорректные данные для обновления профиля'
+        );
+      }
+      if (err.name === 'CastError') {
+        throw new BadRequestError(
+          'Переданы некорректные данные для обновления профиля'
+        );
+      }
+      throw err;
     })
     .catch(next);
 };
@@ -65,34 +81,33 @@ module.exports.login = (req, res, next) => {
 };
 
 module.exports.createUser = (req, res, next) => {
-  const { name, about, avatar, email, password } = req.body;
-
+  const { name, email, password } = req.body;
   bcrypt
     .hash(password, 10)
     .then((hash) =>
       User.create({
         name,
-        about,
-        avatar,
         email,
         password: hash,
       })
-    )
-    .catch((err) => {
-      if (err.name === 'MongoError' || err.code === 11000) {
-        throw new ConflictError(
-          'Пользователь с таким email уже зарегистрирован'
-        );
-      } else next(err);
-    })
-    .then((user) =>
-      res.send({
-        email: user.email,
-        about: user.about,
-        name: user.name,
-        avatar: user.avatar,
-        _id: user._id,
-      })
+        .then((user) =>
+          res.send({
+            email: user.email,
+            name: user.name,
+            _id: user._id,
+          })
+        )
+        .catch((err) => {
+          if (err.name === 'ValidationError') {
+            throw new BadRequestError('Переданы некорректные данные ');
+          }
+          if (err.name === 'MongoError' && err.code === 11000) {
+            throw new ConflictError(
+              'Пользователь с таким email уже зарегистрирован'
+            );
+          }
+          throw err;
+        })
     )
     .catch(next);
 };

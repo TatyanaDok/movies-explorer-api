@@ -60,23 +60,22 @@ module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
 
   User.findUserByCredentials(email, password)
-    .then((existedUser) => {
+    .then((user) => {
       const token = jwt.sign(
-        { _id: existedUser._id },
+        { _id: user._id },
         NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret',
         { expiresIn: '7d' }
       );
 
-      User.findOne({ email }).then((user) => {
-        res
-          .cookie('jwt', token, {
-            httpOnly: true,
-            sameSite: true,
-            maxAge: 360000 * 24 * 7,
-          })
-          .send(user);
-      });
+      res
+        .cookie('jwt', token, {
+          httpOnly: true,
+          sameSite: true,
+          maxAge: 3600000 * 24 * 7,
+        })
+        .send(user);
     })
+
     .catch(next);
 };
 
@@ -113,7 +112,5 @@ module.exports.createUser = (req, res, next) => {
 };
 
 module.exports.signout = (req, res) => {
-  res
-    .clearCookie('token', { httpOnly: true, sameSite: true })
-    .send({ message: 'Выход выполнен' });
+  res.clearCookie('jwt').send({ message: 'Выход выполнен' });
 };

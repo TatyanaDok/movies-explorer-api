@@ -67,15 +67,16 @@ module.exports.login = (req, res, next) => {
         { expiresIn: '7d' }
       );
 
-      res
-        .cookie('token', token, {
-          httpOnly: true,
-          sameSite: true,
-          maxAge: 360000 * 24 * 7,
-        })
-        .send({ token });
+      User.findOne({ email }).then((user) => {
+        res
+          .cookie('jwt', token, {
+            httpOnly: true,
+            sameSite: true,
+            maxAge: 360000 * 24 * 7,
+          })
+          .send(user);
+      });
     })
-
     .catch(next);
 };
 

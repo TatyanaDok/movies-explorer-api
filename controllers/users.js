@@ -68,12 +68,12 @@ module.exports.login = (req, res, next) => {
       );
 
       res
-        .cookie('jwt', token, {
+        .cookie('token', token, {
           httpOnly: true,
-          sameSite: true,
+
           maxAge: 3600000 * 24 * 7,
         })
-        .send(user);
+        .send({ token });
     })
 
     .catch(next);

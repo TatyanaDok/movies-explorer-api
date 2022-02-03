@@ -75,7 +75,7 @@ module.exports.login = (req, res, next) => {
           sameSite: true,
           maxAge: 3600000 * 24 * 7,
         })
-        .send({ email: user.email, name: user.name });
+        .send({ token });
     })
 
     .catch(next);

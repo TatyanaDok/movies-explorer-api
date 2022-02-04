@@ -10,8 +10,12 @@ const BadRequestError = require('../errors/badRequestErr');
 
 module.exports.getUser = (req, res, next) => {
   User.findById(req.user._id)
-    .orFail(new NotFoundError('Пользователь не найден'))
-    .then((user) => res.send(user))
+    .orFail()
+    .then((user) => {
+      if (user) {
+        res.send(user);
+      } else throw new NotFoundError('Пользователь не найден');
+    })
     .catch(next);
 };
 
@@ -55,7 +59,7 @@ module.exports.updateUser = (req, res, next) => {
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
 
-  User.findUserByCredentials(email, password)
+  return User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
         expiresIn: '7d',
@@ -65,6 +69,7 @@ module.exports.login = (req, res, next) => {
         .cookie('token', token, {
           maxAge: 3600000 * 24 * 7,
           httpOnly: true,
+          sameSite: true,
         })
         .send({ token });
     })

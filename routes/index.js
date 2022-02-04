@@ -8,14 +8,14 @@ const {
   createUserValidator,
 } = require('../middlewares/celebrate');
 
-const { createUser, login, signout } = require('../controllers/users');
+const { createProfile, login, logout } = require('../controllers/users');
 
-router.post('/signup', createUserValidator, createUser);
+router.post('/signup', createUserValidator, createProfile);
 router.post('/signin', loginValidator, login);
 router.use(auth);
 router.use('/', userRouter);
 router.use('/', movieRouter);
-router.post('/signout', signout);
+router.post('/signout', logout);
 router.use(() => {
   throw new NotFoundError('Страница не найдена');
 });

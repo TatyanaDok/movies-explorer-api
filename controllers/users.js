@@ -10,7 +10,7 @@ const BadRequestError = require('../errors/badRequestErr');
 const { NODE_ENV, JWT_SECRET } = process.env;
 
 function getCurrentUser(req, res, next) {
-  return User.findById(req.user._id)
+   User.findById(req.user._id)
     .orFail()
     .then((user) => {
       if (user) {
@@ -75,26 +75,24 @@ function createProfile(req, res, next) {
 
 function login(req, res, next) {
   const { email, password } = req.body;
-  return User.findUserByCredentials(email, password)
-    .then((user) => {
+   User.findUserByCredentials(email, password)
+    .then((existedUser) => {
       const token = jwt.sign(
-        { _id: user._id },
+        { _id: existedUser._id },
         NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret',
         { expiresIn: '7d' }
       );
-      res
-        .cookie('jwt', token, {
-          maxAge: 3600000 * 24 * 7,
+      User.findOne({ email })
+        .then((user) => res.cookie('jwt', token, {
           httpOnly: true,
           sameSite: true,
+          maxAge: (360000 * 24 * 7),
         })
-        .send(user);
+          .send(user));
     })
     .catch(next);
-}
-function logout(req, res) {
-  res.clearCookie('jwt').send({ message: 'Вы вышли из аккаунта' });
-}
+};
+const logout = (req, res) => res.clearCookie('jwt', { httpOnly: true, sameSite: true }).send({ message: 'Signed Out' });
 
 module.exports = {
   getCurrentUser,

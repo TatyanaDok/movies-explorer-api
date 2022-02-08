@@ -88,7 +88,7 @@ function login(req, res, next) {
           httpOnly: true,
           sameSite: true,
         })
-        .send({ message: 'Успешная авторизация' });
+        .send(user);
     })
     .catch(next);
 }

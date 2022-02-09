@@ -10,13 +10,9 @@ const BadRequestError = require('../errors/badRequestErr');
 const { NODE_ENV, JWT_SECRET } = process.env;
 
 function getCurrentUser(req, res, next) {
-   User.findById(req.user._id)
-    .orFail()
-    .then((user) => {
-      if (user) {
-        res.send(user);
-      } else throw new NotFoundError('Пользователь не найден');
-    })
+  User.findById(req.user._id)
+    .orFail(new NotFoundError('Пользователь не найден'))
+    .then((user) => res.send(user))
     .catch(next);
 }
 
@@ -55,6 +51,7 @@ function createProfile(req, res, next) {
         password: hash,
       })
     )
+    .then((user) => res.send(user.toJSON()))
     .catch((err) => {
       if (err.name === 'MongoError' || err.code === 11000) {
         throw new ConflictError(
@@ -64,35 +61,35 @@ function createProfile(req, res, next) {
         next(err);
       }
     })
-    .then((user) => {
-      res.status(201).send({
-        name: user.name,
-        email: user.email,
-      });
-    })
+
     .catch(next);
 }
 
 function login(req, res, next) {
   const { email, password } = req.body;
-   User.findUserByCredentials(email, password)
+  User.findUserByCredentials(email, password)
     .then((existedUser) => {
       const token = jwt.sign(
         { _id: existedUser._id },
         NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret',
         { expiresIn: '7d' }
       );
-      User.findOne({ email })
-        .then((user) => res.cookie('jwt', token, {
-          httpOnly: true,
-          sameSite: true,
-          maxAge: (360000 * 24 * 7),
-        })
-          .send(user));
+      User.findOne({ email }).then((user) =>
+        res
+          .cookie('jwt', token, {
+            httpOnly: true,
+            sameSite: true,
+            maxAge: 360000 * 24 * 7,
+          })
+          .send(user)
+      );
     })
     .catch(next);
-};
-const logout = (req, res) => res.clearCookie('jwt', { httpOnly: true, sameSite: true }).send({ message: 'Signed Out' });
+}
+const logout = (req, res) =>
+  res
+    .clearCookie('jwt', { httpOnly: true, sameSite: true })
+    .send({ message: 'Signed Out' });
 
 module.exports = {
   getCurrentUser,

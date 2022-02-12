@@ -74,16 +74,16 @@ function login(req, res, next) {
         NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret',
         { expiresIn: '7d' }
       );
-      User.findOne({ email }).then((user) =>
-        res
-          .cookie('jwt', token, {
-            httpOnly: true,
-            sameSite: true,
-            maxAge: 360000 * 24 * 7,
-          })
-          .send(user)
-      );
+
+      res
+        .cookie('jwt', token, {
+          httpOnly: true,
+          sameSite: true,
+          maxAge: 360000 * 24 * 7,
+        })
+        .send({ token });
     })
+
     .catch(next);
 }
 const logout = (req, res) =>

@@ -76,7 +76,7 @@ function login(req, res, next) {
       );
 
       res
-        .cookie('jwt', token, {
+        .cookie('token', token, {
           httpOnly: true,
           sameSite: true,
           maxAge: 360000 * 24 * 7,
@@ -87,9 +87,7 @@ function login(req, res, next) {
     .catch(next);
 }
 const logout = (req, res) =>
-  res
-    .clearCookie('jwt', { httpOnly: true, sameSite: true })
-    .send({ message: 'Signed Out' });
+  res.clearCookie('token').send({ message: 'Выход выполнен' });
 
 module.exports = {
   getCurrentUser,

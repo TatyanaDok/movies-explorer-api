@@ -13,8 +13,8 @@ const { createProfile, login, logout } = require('../controllers/users');
 router.post('/signup', createUserValidator, createProfile);
 router.post('/signin', loginValidator, login);
 router.use(auth);
-router.use('/', userRouter);
-router.use('/', movieRouter);
+router.use('/users', userRouter);
+router.use('/movies', movieRouter);
 router.post('/signout', logout);
 router.use(() => {
   throw new NotFoundError('Страница не найдена');

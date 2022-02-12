@@ -4,16 +4,16 @@ const UnauthorizedError = require('../errors/unauthorizedErr');
 const { NODE_ENV, JWT_SECRET } = process.env;
 
 const auth = (req, res, next) => {
-  const { token } = req.cookies;
-  if (!token) {
-    return next(
-      new UnauthorizedError(
-        'При авторизации произошла ошибка. Токен не передан или передан не в том формате'
-      )
+  if (!req.cookies.jwt) {
+    throw new UnauthorizedError(
+      'Токен не передан или передан не в том формате'
     );
   }
 
+  const token = req.cookies.jwt;
+
   let payload;
+
   try {
     payload = jwt.verify(
       token,

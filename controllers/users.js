@@ -39,7 +39,6 @@ function updateProfile(req, res, next) {
     .then((user) => res.send(user))
     .catch(next);
 }
-
 function createProfile(req, res, next) {
   const { name, email, password } = req.body;
   bcrypt
@@ -50,18 +49,25 @@ function createProfile(req, res, next) {
         email,
         password: hash,
       })
+        .then((user) =>
+          res.send({
+            email: user.email,
+            name: user.name,
+            _id: user._id,
+          })
+        )
+        .catch((err) => {
+          if (err.name === 'ValidationError') {
+            throw new BadRequestError('Переданы некорректные данные ');
+          }
+          if (err.name === 'MongoError' && err.code === 11000) {
+            throw new ConflictError(
+              'Пользователь с таким email уже зарегистрирован'
+            );
+          }
+          throw err;
+        })
     )
-    .then((user) => res.send(user.toJSON()))
-    .catch((err) => {
-      if (err.name === 'MongoError' || err.code === 11000) {
-        throw new ConflictError(
-          'Пользователь с таким email уже зарегистрирован'
-        );
-      } else {
-        next(err);
-      }
-    })
-
     .catch(next);
 }
 
@@ -75,19 +81,22 @@ function login(req, res, next) {
         { expiresIn: '7d' }
       );
 
-      res
-        .cookie('token', token, {
-          httpOnly: true,
-          sameSite: true,
-          maxAge: 360000 * 24 * 7,
-        })
-        .send({ token });
+      User.findOne({ email }).then((user) =>
+        res
+          .cookie('jwt', token, {
+            httpOnly: true,
+            sameSite: true,
+            maxAge: 360000 * 24 * 7,
+          })
+          .send(user)
+      );
     })
-
     .catch(next);
 }
 const logout = (req, res) =>
-  res.clearCookie('token').send({ message: 'Выход выполнен' });
+  res
+    .clearCookie('jwt', { httpOnly: true, sameSite: true })
+    .send({ message: 'Выход выполнен' });
 
 module.exports = {
   getCurrentUser,

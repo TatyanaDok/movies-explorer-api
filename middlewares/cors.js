@@ -1,14 +1,19 @@
-/* const { CORS_WHITELIST } = require('../utils/constants');
-
-const corsOption = {
+module.exports.corsConfig = {
+  origin: [
+    'https://andjustlikethat.nomoredomains.rocks',
+    'http://andjustlikethat.nomoredomains.rocks',
+    'http://localhost:3001',
+    'http://localhost:3000',
+  ],
+  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
+  allowedHeaders: [
+    'Content-Type',
+    'Origin',
+    'Referer',
+    'Accept',
+    'Authorization',
+  ],
   credentials: true,
-  origin: function checkCorsList(origin, callback) {
-    if (CORS_WHITELIST.indexOf(origin) !== -1 || !origin) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
 };
-
-module.exports = corsOption; */

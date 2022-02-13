@@ -1,19 +1,26 @@
-module.exports.corsConfig = {
-  origin: [
-    'https://andjustlikethat.nomoredomains.rocks',
-    'http://andjustlikethat.nomoredomains.rocks',
-    'http://localhost:3001',
-    'http://localhost:3000',
-  ],
-  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
-  preflightContinue: false,
-  optionsSuccessStatus: 204,
-  allowedHeaders: [
-    'Content-Type',
-    'Origin',
-    'Referer',
-    'Accept',
-    'Authorization',
-  ],
-  credentials: true,
+const DEFAULT_ALLOWED_METHODS = 'GET,HEAD,PUT,PATCH,POST,DELETE';
+const allowedCors = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'https://andjustlikethat.nomoredomains.rocks',
+  'http://andjustlikethat.nomoredomains.rocks',
+];
+
+module.exports = (req, res, next) => {
+  const { origin } = req.headers;
+  const { method } = req;
+  const requestHeaders = req.headers['access-control-request-headers'];
+  if (allowedCors.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Credentials', true);
+  }
+
+  if (method === 'OPTIONS') {
+    res.header('Access-Control-Allow-Methods', DEFAULT_ALLOWED_METHODS);
+    res.header('Access-Control-Allow-Headers', requestHeaders);
+    res.status(200).send();
+    return;
+  }
+
+  next();
 };

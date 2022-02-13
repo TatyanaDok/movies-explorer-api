@@ -1,4 +1,4 @@
-const { CORS_WHITELIST } = require('../utils/constants');
+/* const { CORS_WHITELIST } = require('../utils/constants');
 
 const corsOption = {
   credentials: true,
@@ -11,4 +11,4 @@ const corsOption = {
   },
 };
 
-module.exports = corsOption;
+module.exports = corsOption; */

@@ -39,6 +39,7 @@ function updateProfile(req, res, next) {
     .then((user) => res.send(user))
     .catch(next);
 }
+
 function createProfile(req, res, next) {
   const { name, email, password } = req.body;
   bcrypt
@@ -49,25 +50,22 @@ function createProfile(req, res, next) {
         email,
         password: hash,
       })
-        .then((user) =>
-          res.send({
-            email: user.email,
-            name: user.name,
-            _id: user._id,
-          })
-        )
-        .catch((err) => {
-          if (err.name === 'ValidationError') {
-            throw new BadRequestError('Переданы некорректные данные ');
-          }
-          if (err.name === 'MongoError' && err.code === 11000) {
-            throw new ConflictError(
-              'Пользователь с таким email уже зарегистрирован'
-            );
-          }
-          throw err;
-        })
     )
+    .catch((err) => {
+      if (err.name === 'MongoError' || err.code === 11000) {
+        throw new ConflictError(
+          'Пользователь с таким email уже зарегистрирован'
+        );
+      } else {
+        next(err);
+      }
+    })
+    .then((user) => {
+      res.status(201).send({
+        name: user.name,
+        email: user.email,
+      });
+    })
     .catch(next);
 }
 
